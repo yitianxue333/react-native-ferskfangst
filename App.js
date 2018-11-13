@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StatusBar, View } from 'react-native';
+import { StatusBar, View, AppState } from 'react-native';
 import Moment from 'moment';
 import MomentNBLocale from 'moment/locale/nb';
 import Appsee from 'react-native-appsee';

@@ -38,7 +38,14 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 2,
     justifyContent: 'center',
     width: 50
-  }
+  },
+  time: {
+    paddingRight: 10,
+    color: palette[1],
+    paddingTop: 0,
+    fontSize: 12,
+    textAlign: 'right'
+  },
 });
 
 

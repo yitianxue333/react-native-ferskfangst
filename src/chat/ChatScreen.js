@@ -11,11 +11,14 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  ScrollView
+  ScrollView,
+  Modal as RNModal,
+  TouchableOpacity
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Toast from '@remobile/react-native-toast';
 import Moment from 'moment';
+import { NavigationActions } from 'react-navigation';
 import Appsee from 'react-native-appsee';
 
 import FCMClient from '../FCMClient';
@@ -29,6 +32,7 @@ import ChatScreenHeader from './ChatScreenHeader';
 import ChatScreenInput from './ChatScreenInput';
 import MessageSectionsMap from './MessageSectionsMap';
 import styles from './ChatScreen.styles';
+import navigationDispatcher from '../navigationDispatcher';
 
 
 /**
@@ -54,7 +58,11 @@ class ChatScreen extends Component {
       token: '',
       userId: 0,
       companionId: getCompanionId(props.navigation, 'uid', 0),
-      offset: 0,      
+      offset: 0,
+      notification: null,
+      message: null,
+      temp_uid: null,
+      sender_uid: null
     };
 
     this.sectionsMap = new MessageSectionsMap();
@@ -121,6 +129,7 @@ class ChatScreen extends Component {
       }
     } catch (e) {
       Toast.show('Server error', 2000);
+      console.log("server error", e);
     } finally {
       this.resetIndicators();
     }
@@ -135,37 +144,72 @@ class ChatScreen extends Component {
   }
 
   onMessagesLoad = (messages) => {
-    for (let i = 0; i < messages.length; i++) {
-      const message = messages[i];
+    if (messages.length >0) {
+      this.setState({ temp_uid: messages[0].uid })
 
-      message.time = Moment.utc(message.time).local();
-
-      this.sectionsMap.get(this.timestampToDateStamp(message.time)).push(message);
+      for (let i = 0; i < messages.length; i++) {
+        const message = messages[i];
+  
+        message.time = Moment.utc(message.time).local();
+  
+        this.sectionsMap.get(this.timestampToDateStamp(message.time)).push(message);
+      }
+      this.setState({
+        sections: this.sectionsMap.toList(),
+        messageCount: this.state.messageCount + messages.length
+      });
     }
 
-    this.setState({
-      sections: this.sectionsMap.toList(),
-      messageCount: this.state.messageCount + messages.length
-    });
+
   };
 
   onMessageReceive = (data, timeStamp) => {
+    var cur_time = Moment().format('LT');
     const message = {
       id: data.id,
       uid: data.uid,
+      name: data.name,
       message: data.text,
       time: Moment(timeStamp),
+      message_time: cur_time,
       isRead: true
     };
+    this.setState({ message: message,
+                    notification: true,
+                    sender_uid: data.uid });
+    this.setState({  });
+    setTimeout(() => {
+        this.setState({ notification: null });
+      }, 3000);
+    
+    if (this.state.sender_uid === this.state.temp_uid) {
+      this.sectionsMap.get(this.timestampToDateStamp(message.time)).unshift(message);
 
-    this.sectionsMap.get(this.timestampToDateStamp(message.time)).unshift(message);
-
-    this.setState({ sections: this.sectionsMap.toList(), messageCount: this.state.messageCount + 1 });
-
-    if (AppState.currentState === 'active') {
-      chatService.dispatch({ type: 'success', id: data.id });
-      this.markAsRead(this.state.companionId);
+      this.setState({ sections: this.sectionsMap.toList(), messageCount: this.state.messageCount + 1 });
+  
+      if (AppState.currentState === 'active') {
+        chatService.dispatch({ type: 'success', id: data.id });
+        this.markAsRead(this.state.companionId);
+      }
     }
+  };
+
+  tapOnNotificationView = (uid, name) => {
+
+    this.setState({ notification: null }, () => {
+      navigationDispatcher.dispatch(NavigationActions.navigate({
+        routeName: 'Messenger',
+        action: NavigationActions.navigate({
+          routeName: 'Chat',
+          params: {
+            uid: uid,
+            name: name,
+            openedFromNotification: true,
+            markAsRead: true
+          }
+        })
+      }));
+    });
   };
 
   onMessageSent = (messageId) => {    
@@ -293,11 +337,29 @@ class ChatScreen extends Component {
   renderSectionFooter = ({ section }) => this.renderSectionDate(section.title);
 
   render() {
-    const { sections, stickyDate, toSend, sendQueue, isLoading, isStickyDateVisible } = this.state;
+    const { sections, stickyDate, toSend, sendQueue, isLoading, isStickyDateVisible, notification, message, temp_uid, sender_uid } = this.state;
     const { offset } = this.state
     
     return Platform.OS == "ios" ? (
       <View style={[styles.container, { marginBottom: offset }]}>
+        {
+          notification === null || temp_uid === sender_uid ?
+          <View></View>:
+          <RNModal
+            transparent={true}
+            onRequestClose={()=>{}}
+            visible={true}>
+            < View style={{ backgroundColor: palette[0] }}>
+              <TouchableOpacity onPress={() => this.tapOnNotificationView(message.uid, message.name)}>
+                <View style={styles.titleView}>
+                    <Text style={styles.title}>{message.name}</Text>
+                    <Text style={styles.time}>{message.message_time}</Text>
+                </View>
+                <Text style={styles.message}> {message.message}</Text>
+              </TouchableOpacity>
+            </View >
+          </RNModal >
+        }
         {isStickyDateVisible && (
           <View style={styles.sectionDateSticky}>
             {this.renderSectionDate(stickyDate)}
@@ -332,7 +394,25 @@ class ChatScreen extends Component {
         </View>
       </View>
     ): (
-      <View style={styles.container}>    
+      <View style={styles.container}>
+       {
+          notification === null || temp_uid === sender_uid ?
+          <View></View>:
+        <RNModal
+          transparent={true}
+          onRequestClose={()=>{}}
+          visible={true}>
+          < View style={{ backgroundColor: palette[0] }}>
+            <TouchableOpacity onPress={() => this.tapOnNotificationView(message.uid, message.name)}>
+              <View style={styles.titleView}>
+                  <Text style={styles.title}>{message.name}</Text>
+                  <Text style={styles.time}>{message.message_time}</Text>
+              </View>
+              <Text style={styles.message}> {message.message}</Text>
+            </TouchableOpacity>
+          </View >
+        </RNModal >
+        }
       {isStickyDateVisible && (
         <View style={styles.sectionDateSticky}>
           {this.renderSectionDate(stickyDate)}

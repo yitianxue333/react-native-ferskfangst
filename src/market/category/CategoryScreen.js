@@ -16,6 +16,7 @@ import SubcategoryCardList from '../subcategory/SubcategoryCardList';
 import subcategoryStore from '../subcategory/subcategoryStore';
 import CategoryBanner from './CategoryBanner';
 import styles from './CategoryScreen.styles';
+import ChatModal from '../../ChatModal';
 
 /**
  * Market category screen component.
@@ -79,6 +80,7 @@ class CategoryScreen extends Component {
   render() {
     return (
       <ScrollView keyboardShouldPersistTaps="handled" ref={bindComponentRef.call(this, 'scroll')}>
+        <ChatModal />
         <CategoryBanner
           image={this.state.category.banner}
           title={this.state.category.title}

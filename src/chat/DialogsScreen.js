@@ -7,20 +7,25 @@ import {
   SectionList,
   ActivityIndicator,
   RefreshControl,
-  BackHandler
+  BackHandler,
+  Modal as RNModal,
+  TouchableOpacity
 } from 'react-native';
+import { NavigationActions } from 'react-navigation';
 import Toast from '@remobile/react-native-toast';
 import Appsee from 'react-native-appsee';
 
 
 import { markRouteAsActive } from '../AppNavigator';
 import { getStateParam } from '../common/helpers';
-import { placeholders } from '../common/styles';
+import { placeholders, palette } from '../common/styles';
 import chatService from './chatService';
 import Dialog from './Dialog';
 import DialogsScreenHeader from './DialogsScreenHeader';
 import modes from './dialogsScreenModes';
 import styles from './DialogsScreen.styles';
+import navigationDispatcher from '../navigationDispatcher';
+import Moment from 'moment';
 
 /**
  * Screen component for dialogs list.
@@ -41,7 +46,9 @@ class DialogsScreen extends Component {
       mode: modes.default,
       dialogs: [],
       selection: [],
-      offset: 0
+      offset: 0,
+      notification: null,
+      message: null
     };
   }
 
@@ -120,6 +127,7 @@ class DialogsScreen extends Component {
 
   onDialogsLoad = (dialogs) => {
     this.setState({ dialogs: (this.state.offset ? [...this.state.dialogs, ...dialogs] : dialogs) });
+ 
   };
 
   onDialogsDelete = () => {
@@ -131,23 +139,58 @@ class DialogsScreen extends Component {
     });
   };
 
-  onMessage = (message) => {
-    const { dialogs } = this.state;
+  onMessage = (data) => {
+    var cur_time = Moment().format('LT');
+    const message = {
+      id: data.id,
+      uid: data.uid,
+      name: data.name,
+      message: data.text,
+      time: 'asdf',
+      message_time: cur_time,
+      isRead: true
+    };
+    this.setState({ message: message });
+    this.setState({ notification: true });
+    setTimeout(() => {
+        this.setState({ notification: null });
+      }, 3000);
 
-    this.setState({
-      dialogs: [
-        {
-          ...(dialogs.find(dialog => dialog.uid === message.uid)),
-          ...{
-            uid: message.uid,
-            name: message.name,
-            message: message.text,
-            isOwn: false,
-            isRead: false
+    const { dialogs } = this.state;
+    if (dialogs.length > 0) {
+      this.setState({
+        dialogs: [
+          {
+            ...(dialogs.find(dialog => dialog.uid === data.uid)),
+            ...{
+              uid: data.uid,
+              name: data.name,
+              message: data.text,
+              isOwn: false,
+              isRead: false
+            }
+          },
+          ...(dialogs.filter(dialog => dialog.uid !== data.uid))
+        ]
+      });
+    }
+  };
+
+  tapOnNotificationView = (uid, name) => {
+
+    this.setState({ notification: null }, () => {
+      navigationDispatcher.dispatch(NavigationActions.navigate({
+        routeName: 'Messenger',
+        action: NavigationActions.navigate({
+          routeName: 'Chat',
+          params: {
+            uid: uid,
+            name: name,
+            openedFromNotification: true,
+            markAsRead: true
           }
-        },
-        ...(dialogs.filter(dialog => dialog.uid !== message.uid))
-      ]
+        })
+      }));
     });
   };
 
@@ -246,10 +289,28 @@ class DialogsScreen extends Component {
   };
 
   render() {
-    const { dialogs, isLoading, isProcessing, isRefreshing, mode } = this.state;
-
+    const { dialogs, isLoading, isProcessing, isRefreshing, mode, notification, message } = this.state;
     return (
       <View style={styles.container}>
+      {
+        notification === null ?
+        <View></View>:
+        <RNModal
+          transparent={true}
+          onRequestClose={()=>{}}
+          visible={true}>
+          < View style={{ backgroundColor: palette[0] }}>
+            <TouchableOpacity onPress={() => this.tapOnNotificationView(message.uid, message.name)}>
+              <View style={styles.titleView}>
+                  <Text style={styles.title}>{message.name}</Text>
+                  <Text style={styles.time}>{message.message_time}</Text>
+              </View>
+              <Text style={styles.message}> {message.message}</Text>
+            </TouchableOpacity>
+          </View >
+        </RNModal >
+
+      }
         {isProcessing && (
           <ActivityIndicator animate size="large" style={styles.processingIndicator} />
         )}

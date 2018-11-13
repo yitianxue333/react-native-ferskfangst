@@ -4,6 +4,7 @@ import { AppState, AppStateIOS } from 'react-native';
 
 import AsyncStorage from '../common/AsyncStorage';
 import Request from '../common/Request';
+import chatService from '../chat/chatService';
 
 const keys = {
   token: '@FerskFangst:token',
@@ -93,6 +94,8 @@ class AuthService {
 
       values.token = '';
       values.user = null;
+
+      chatService.close();
 
       onUserChange.forEach(listener => listener(false, null));
     } catch (e) {

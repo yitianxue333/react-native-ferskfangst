@@ -1542,6 +1542,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = 76V672QM6Y;
+				ENABLE_BITCODE = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../node_modules/react-native-cookies/ios/RNCookieManagerIOS/**",
@@ -1555,6 +1556,7 @@
 					"$(SRCROOT)/../node_modules/react-native-appsee/ios",
 				);
 				INFOPLIST_FILE = FerskFangst/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1586,6 +1588,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 76V672QM6Y;
+				ENABLE_BITCODE = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../node_modules/react-native-cookies/ios/RNCookieManagerIOS/**",
@@ -1599,6 +1602,7 @@
 					"$(SRCROOT)/../node_modules/react-native-appsee/ios",
 				);
 				INFOPLIST_FILE = FerskFangst/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",

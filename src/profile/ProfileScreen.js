@@ -30,6 +30,7 @@ import ProfileComActions from './ProfileComActions';
 import ProfileScreenHeader from './ProfileScreenHeader';
 import LogoutConfirm from './LogoutConfirm';
 import styles from './ProfileScreen.styles';
+import ChatModal from '../ChatModal';
 
 /**
  * Profile screen component.
@@ -269,6 +270,7 @@ class ProfileScreen extends Component {
 
     return (
       <View style={styles.container}>
+        <ChatModal />
         {profileLoaded ? (
           <ProductCards
             ref={bindComponentRef.call(this, 'products')}

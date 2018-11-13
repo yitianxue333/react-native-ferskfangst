@@ -20,6 +20,7 @@ import styles from './ProductCards.styles';
 
 let idxBanner = 0;
 let cntColumn = 0;
+var temp_banner = [];
 
 /**
  * List component of ProductCard components.
@@ -38,7 +39,9 @@ class ProductCards extends Component {
       isUpdating: false,
       isRefreshing: false,
       products: [],
-      total: 0
+      total: 0,
+      subcategoryId: null,
+      categoryId: 0
     };
 
     this.request = productService.all();
@@ -108,8 +111,29 @@ class ProductCards extends Component {
       this.setState({ products: await this.getProducts(this.props.params), banners: await adsBannerService.all().run() });
     } finally {
       this.setState({ isLoading: false });
+      this.setState({ subcategoryId: this.state.products[0].subcategoryId });
+      temp_banner = [];
+      this.getCategoryId();
+      for (var i = 0; i < this.state.banners.data.length; i++) {
+        if (this.state.banners.data[i].category === this.state.categoryId) {
+          temp_banner.push(this.state.banners.data[i]);
+        }
+      }
+      console.log("temp ads", temp_banner);
     }
   };
+  
+  getCategoryId() {
+    if (this.state.subcategoryId > 0 && this.state.subcategoryId <7){
+      this.setState({ categoryId: 1})
+    } else if (this.state.subcategoryId > 6 && this.state.subcategoryId < 15){
+      this.setState({ categoryId: 2})
+    } else if (this.state.subcategoryId > 14 && this.state.subcategoryId < 24){
+      this.setState({ categoryId: 3})
+    } else if (this.state.subcategoryId > 23 && this.state.subcategoryId < 30){
+      this.setState({ categoryId: 4})
+    }
+  }
 
   refreshProducts = async () => {
     this.setState({ isRefreshing: true });
@@ -183,15 +207,16 @@ class ProductCards extends Component {
       row = <View style={styles.row}>{cells}</View>;
       cntColumn++;
     }
-
+    
     if (this.props.isShowADS == undefined ) {
+
       const banner = [];
-      if((cntColumn === 3 && idxBanner < this.state.banners.data.length)
-        || (index === this.state.total - 1 && cntColumn > 0 && cntColumn < 3 && idxBanner < this.state.banners.data.length)) {
-        banner.push(this.renderAdsBanner(this.state.banners.data[idxBanner]));
-        row = <View><View style={styles.row}>{cells}</View><View style={styles.row}>{banner}</View></View>;
-        idxBanner++;
-        cntColumn = 0;
+      if((cntColumn === 3 && idxBanner < temp_banner.length)
+        || (index === this.state.total - 1 && cntColumn > 0 && cntColumn < 3 && idxBanner < temp_banner.length)) {
+          banner.push(this.renderAdsBanner(temp_banner[idxBanner]));
+          row = <View><View style={styles.row}>{cells}</View><View style={styles.row}>{banner}</View></View>;
+          idxBanner++;
+          cntColumn = 0;
       }
     }
 

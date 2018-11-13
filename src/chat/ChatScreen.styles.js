@@ -61,6 +61,32 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingTop: 5
   },
+  titleView: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between'
+  },
+  title: {
+    paddingLeft: 8,
+    paddingRight: 5,  
+    paddingTop: 0,
+    color: palette[2],
+    fontSize: 19,
+    textAlign: 'left'
+  },
+  time: {
+    paddingRight: 10,
+    color: palette[1],
+    paddingTop: 0,
+    fontSize: 12,
+    textAlign: 'right'
+  },
+  message: {
+    padding: 5,
+    color: palette[1],
+    fontSize: 14,
+    textAlign: 'left'
+  }
 });
 
 export default styles;
